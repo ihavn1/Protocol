@@ -4,26 +4,11 @@
 
 #define MAX_MESSAGE_BUFFER_SIZE 20
 
-typedef struct
-{
-	uint8_t messageLen;
+typedef struct messageBuffer_st* messageBuffer_t;
 
-	union peter
-	{
-		struct frameStruct
-		{
-			uint8_t seqNo : 2;
-			uint8_t ackNackSeqNo : 2;
-			uint8_t acknowlegde : 1;
-
-			uint8_t payload[MAX_MESSAGE_BUFFER_SIZE];
-		};
-
-		struct frameStruct *packet;
-	};
-
-} messageBuffer_t;
-
-void messageBuffer_setPayloadLength(messageBuffer_t *message, uint8_t len);
+messageBuffer_t messageBuffer_create();
+void messageBuffer_copyToPayload(messageBuffer_t self, uint8_t buffer[], uint8_t bufferLen);
+uint8_t* messageBuffer_getPayloadPointer(messageBuffer_t self);
+uint8_t messageBuffer_getPayloadLen(messageBuffer_t self);
 
 #endif // _MESSAGE_BUFFER_H

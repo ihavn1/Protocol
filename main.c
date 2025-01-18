@@ -9,7 +9,7 @@ void printHex(const messageBuffer_t *message)
 {
 	for (uint8_t i = 1; i < message->messageLen; i++)
 	{
-		printf("[%02X] ", message->packet[i]);
+		printf("[%02X] ", message->p_packet->payload[i]);
 	}
 
 	printf("\n");
@@ -41,7 +41,7 @@ int main()
 	message.ackNackSeqNo = 2;
 	message.acknowlegde = true;
 
-	printf("messageBuffer size: %d\n", sizeof(message));
+	printf("messageBuffer size: %d\n", (int)sizeof(message));
 
 	uint8_t tmp[] = {0, framing_ESC_BYTE, framing_FLAG_BYTE, 0, 0};
 

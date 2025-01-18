@@ -58,37 +58,37 @@ void framing_destroy()
 }
 
 // --------------------------------------------
-framing_status_t framing_frameAndStuffMessage(messageBuffer_t *message)
+framing_status_t framing_frameAndStuffMessage(messageBuffer_t* message)
 {
 	uint8_t dst = 0;
 	uint8_t dst_buffer[MAX_MESSAGE_BUFFER_SIZE];
 
 	dst_buffer[dst++] = framing_FLAG_BYTE;
-	
+
 	for (uint8_t src = 0; src < message->messageLen; src++)
 	{
-		if( message->packet[src] == framing_FLAG_BYTE || message->packet[src] == framing_ESC_BYTE)
+		if (message->p_packet->payload[src] == framing_FLAG_BYTE || message->p_packet->payload[src] == framing_ESC_BYTE)
 		{
-			if (dst >= MAX_MESSAGE_BUFFER_SIZE-1)
+			if (dst >= MAX_MESSAGE_BUFFER_SIZE - 1)
 				return BUFFER_TO_SMALL;
-			
+
 			dst_buffer[dst++] = framing_ESC_BYTE;
 		}
 
-		if (dst >= MAX_MESSAGE_BUFFER_SIZE-1)
+		if (dst >= MAX_MESSAGE_BUFFER_SIZE - 1)
 			return BUFFER_TO_SMALL;
 
-		dst_buffer[dst++] = message->packet[src];
+		dst_buffer[dst++] = message->p_packet->payload[src];
 	}
 
 	dst_buffer[dst++] = framing_FLAG_BYTE;
 
 	for (uint8_t i = 0; i < dst; i++)
 	{
-		message->packet[i] = dst_buffer[i];
+		message->p_packet->payload[dst] = dst_buffer[i];
 	}
 
-	message->messageLen = dst+1;
+	message->messageLen = dst + 1;
 
 	return OK;
 }

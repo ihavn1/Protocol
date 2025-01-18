@@ -7,11 +7,11 @@ struct messageBuffer_st
 {
 	uint8_t payloadLen;
 
-	struct 
-	{
+	struct {
 		uint8_t seqNo : 2;
 		uint8_t ackNackSeqNo : 2;
-		uint8_t acknowlegde : 1;
+		uint8_t acknowledge : 1;
+		uint8_t reserved : 3;  // To make the total bits 8
 
 		uint8_t payload[MAX_MESSAGE_BUFFER_SIZE];
 	} frameStruct;
@@ -43,12 +43,31 @@ uint8_t* messageBuffer_getPayloadPointer(messageBuffer_t self) {
 uint8_t messageBuffer_getPayloadLen(messageBuffer_t self) {
 	return self->payloadLen;
 }
+
+// ---------------------------------------------
+void messageBuffer_setFrameSeqNo(messageBuffer_t self, uint8_t seqNo)
+{
+	self->frameStruct.seqNo = seqNo;
+}
+
+// ---------------------------------------------
+void messageBuffer_setFrameAckNakSeqNo(messageBuffer_t self, uint8_t seqNo)
+{
+	self->frameStruct.ackNackSeqNo = seqNo;
+}
+
+// ---------------------------------------------
+void messageBuffer_setFrameAckowledge(messageBuffer_t self, bool ack)
+{
+	self->frameStruct.acknowledge = ack;
+}
+
 // ---------------------------------------------
 uint8_t* messageBuffer_getFramePointer(messageBuffer_t self) {
-	return (uint8_t *) &self->frameStruct;
+	return (uint8_t*)&self->frameStruct;
 }
 
 // ---------------------------------------------
 uint8_t messageBuffer_getFrameLen(messageBuffer_t self) {
-	return self->payloadLen+1;
+	return self->payloadLen + 1;
 }

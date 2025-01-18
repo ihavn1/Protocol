@@ -1,6 +1,7 @@
 #ifndef _MESSAGE_BUFFER_H
 #define _MESSAGE_BUFFER_H
 #include <stdint.h>
+#include <stdbool.h>
 
 #define MAX_MESSAGE_BUFFER_SIZE 20
 
@@ -10,5 +11,11 @@ messageBuffer_t messageBuffer_create();
 void messageBuffer_copyToPayload(messageBuffer_t self, uint8_t buffer[], uint8_t bufferLen);
 uint8_t* messageBuffer_getPayloadPointer(messageBuffer_t self);
 uint8_t messageBuffer_getPayloadLen(messageBuffer_t self);
+
+void messageBuffer_setFrameSeqNo(messageBuffer_t self, uint8_t seqNo);
+void messageBuffer_setFrameAckNakSeqNo(messageBuffer_t self, uint8_t seqNo);
+void messageBuffer_setFrameAckowledge(messageBuffer_t self, bool ack);
+uint8_t* messageBuffer_getFramePointer(messageBuffer_t self);
+uint8_t messageBuffer_getFrameLen(messageBuffer_t self);
 
 #endif // _MESSAGE_BUFFER_H

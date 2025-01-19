@@ -29,9 +29,33 @@ messageBuffer_t messageBuffer_create() {
 }
 
 // ---------------------------------------------
+void messageBuffer_reset(messageBuffer_t self) {
+	self->payloadLen = 0;
+}
+
+// ---------------------------------------------
 void messageBuffer_copyToPayload(messageBuffer_t self, uint8_t buffer[], uint8_t bufferLen) {
 	memcpy(self->frameStruct.payload, buffer, bufferLen);
 	self->payloadLen = bufferLen;
+}
+
+// ---------------------------------------------
+void messageBuffer_copyToFrame(messageBuffer_t self, uint8_t buffer[], uint8_t bufferLen) {
+	memcpy(messageBuffer_getFramePointer(self), buffer, bufferLen);
+	self->payloadLen = bufferLen-1;
+}
+
+// ---------------------------------------------
+void messageBuffer_AppendByte(messageBuffer_t self, uint8_t byte) {
+	self->frameStruct.payload[self->payloadLen++] = byte;
+
+}
+
+// ---------------------------------------------
+void messageBuffer_removeByte(messageBuffer_t self) {
+	if (self->payloadLen > 0) {
+		self->payloadLen--;
+	}
 }
 
 // ---------------------------------------------

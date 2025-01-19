@@ -13,13 +13,13 @@
  * 
  * \param[in] message to calculate checksum on.
  */
-void addChecksum(messageBuffer_t *message);
+void addChecksum(messageBuffer_t message);
 
 /**
  * \brief Check if checksum (last byte of byte message) is ok and remove it from buffer.
  * 
  * \param[in] message buffer to check the checksum on.
  */
-bool isChecksumOkAndRemoveIt(messageBuffer_t *message);
+bool isChecksumOkAndRemoveIt(messageBuffer_t message);
 
 #endif // _CHECKSUM_H

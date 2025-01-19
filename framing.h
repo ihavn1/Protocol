@@ -33,7 +33,7 @@ void framing_destroy();
  * \retval	OK message is now stuffed and framed.
  * \retval  BUFFER_TO_SMALL message to small to hold stuffing and framing.
  */
-framing_status_t framing_frameAndStuffMessage(messageBuffer_t *message);
+framing_status_t framing_frameAndStuffMessage(messageBuffer_t message);
 
 /**
  * \brief Handles individual payload received from the the underlaying layer.

@@ -2,24 +2,24 @@
 #include "framing.h"
 
 enum FRAMING_STATES { IDLE, DATA, ESC };
-static void(*_messageReceivedCallBack)(messageBuffer_t message);
+static void(*_messageReceivedCallBack)(uint8_t *pFrame, uint8_t frameLen);
 static enum FRAMING_STATES _state;
-static uint8_t _buffer[MAX_MESSAGE_BUFFER_SIZE];
-static uint8_t _bufferLen = 0;
+static uint8_t _frameBuffer[MAX_MESSAGE_BUFFER_SIZE];
+static uint8_t _frameBufferLen = 0;
 
 // --------------------------------------------
 static void _storeInBuffer(uint8_t byte)
 {
-	if (_bufferLen < MAX_MESSAGE_BUFFER_SIZE)
+	if (_frameBufferLen < MAX_MESSAGE_BUFFER_SIZE)
 	{
-		_buffer[_bufferLen++] = byte;
+		_frameBuffer[_frameBufferLen++] = byte;
 	}
 }
 
 // --------------------------------------------
 static bool _isBufferEmpty()
 {
-	return _bufferLen == 0;
+	return _frameBufferLen == 0;
 }
 
 // --------------------------------------------
@@ -29,7 +29,7 @@ static void _gotoState(enum FRAMING_STATES newState)
 	switch (newState)
 	{
 	case IDLE:
-		_bufferLen = 0;
+		_frameBufferLen = 0;
 		break;
 
 	default:
@@ -40,11 +40,11 @@ static void _gotoState(enum FRAMING_STATES newState)
 }
 
 // --------------------------------------------
-void framing_create(void(*messageReceived)(messageBuffer_t message))
+void framing_create(void(*messageReceived)(uint8_t* pFrame, uint8_t frameLen))
 {
 	_gotoState(IDLE);
 	_messageReceivedCallBack = messageReceived;
-	_bufferLen=0;
+	_frameBufferLen =0;
 }
 
 // --------------------------------------------
@@ -54,32 +54,33 @@ void framing_destroy()
 }
 
 // --------------------------------------------
-framing_status_t framing_frameAndStuffMessage(messageBuffer_t message)
+framing_status_t framing_frameAndStuffMessage(messageBuffer_t message, uint8_t *pFrame, uint8_t *len)
 {
-	uint8_t dst = 0;
-	uint8_t dst_buffer[MAX_MESSAGE_BUFFER_SIZE];
+	uint8_t _rawMessage[MAX_MESSAGE_BUFFER_SIZE] = { 0 };
+	uint8_t _rawMessageLen = 0;
 
-	dst_buffer[dst++] = framing_FLAG_BYTE;
+	*len = 0;
 
-	for (uint8_t src = 0; src < messageBuffer_getFrameLen(message); src++)
+	messageBuffer_getRawMessage(message, _rawMessage, &_rawMessageLen);
+	pFrame[*len++] = framing_FLAG_BYTE;
+
+	for (uint8_t src = 0; src < _rawMessageLen; src++)
 	{
-		if (messageBuffer_getFramePointer(message)[src] == framing_FLAG_BYTE || messageBuffer_getFramePointer(message)[src] == framing_ESC_BYTE)
+		if (_rawMessage[src] == framing_FLAG_BYTE || _rawMessage[src] == framing_ESC_BYTE)
 		{
-			if (dst >= MAX_MESSAGE_BUFFER_SIZE - 1)
+			if (*len >= MAX_MESSAGE_BUFFER_SIZE - 1)
 				return BUFFER_TO_SMALL;
 
-			dst_buffer[dst++] = framing_ESC_BYTE;
+			pFrame[*len++] = framing_ESC_BYTE;
 		}
 
-		if (dst >= MAX_MESSAGE_BUFFER_SIZE - 1)
+		if (*len >= MAX_MESSAGE_BUFFER_SIZE - 1)
 			return BUFFER_TO_SMALL;
 
-		dst_buffer[dst++] = messageBuffer_getFramePointer(message)[src];
+		pFrame[*len++] = _rawMessage[src];
 	}
 
-	dst_buffer[dst++] = framing_FLAG_BYTE;
-
-	messageBuffer_copyToFrame(message, dst_buffer, dst);
+	pFrame[*len++] = framing_FLAG_BYTE;
 
 	return OK;
 }
@@ -103,11 +104,11 @@ void framing_byteReceived(uint8_t byte)
 		}
 		else if (byte == framing_FLAG_BYTE && _isBufferEmpty())
 		{
-			_bufferLen = 0;;
+			_frameBufferLen = 0;;
 		}
 		else if (byte == framing_FLAG_BYTE && !_isBufferEmpty())
 		{
-			_messageReceivedCallBack(_buffer);
+			_messageReceivedCallBack(_frameBuffer, _frameBufferLen);
 			_gotoState(IDLE);
 		}
 		else

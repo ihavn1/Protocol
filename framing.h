@@ -19,7 +19,7 @@ typedef enum { OK, BUFFER_TO_SMALL } framing_status_t;
  * \param[in] messageReceived pointer to call back function that will be called
  *			  when a message is unframed and unstuffed succesfully.
  */
-void framing_create(void(*messageReceived)(messageBuffer_t message));
+void framing_create(void(*_messageReceivedCallBack)(uint8_t* pFrame, uint8_t frameLen));
 
 /**
  * \brief Destroys the framing and unframing module.
@@ -33,7 +33,7 @@ void framing_destroy();
  * \retval	OK message is now stuffed and framed.
  * \retval  BUFFER_TO_SMALL message to small to hold stuffing and framing.
  */
-framing_status_t framing_frameAndStuffMessage(messageBuffer_t message);
+framing_status_t framing_frameAndStuffMessage(messageBuffer_t message, uint8_t* pFrame, uint8_t* len);
 
 /**
  * \brief Handles individual payload received from the the underlaying layer.

@@ -41,7 +41,7 @@ void messageBuffer_copyToPayload(messageBuffer_t self, uint8_t buffer[], uint8_t
 
 // ---------------------------------------------
 void messageBuffer_copyToFrame(messageBuffer_t self, uint8_t buffer[], uint8_t bufferLen) {
-	memcpy(messageBuffer_getFramePointer(self), buffer, bufferLen);
+	// memcpy(messageBuffer_getFramePointer(self), buffer, bufferLen);
 	self->payloadLen = bufferLen-1;
 }
 
@@ -87,11 +87,14 @@ void messageBuffer_setFrameAckowledge(messageBuffer_t self, bool ack)
 }
 
 // ---------------------------------------------
-uint8_t* messageBuffer_getFramePointer(messageBuffer_t self) {
-	return (uint8_t*)&self->frameStruct;
+uint8_t messageBuffer_getRawMessageLen(messageBuffer_t self) {
+	return self->payloadLen + 1;
 }
 
 // ---------------------------------------------
-uint8_t messageBuffer_getFrameLen(messageBuffer_t self) {
-	return self->payloadLen + 1;
+void messageBuffer_getRawMessage(messageBuffer_t self, uint8_t * pDest, uint8_t *len) {
+	if (self->payloadLen != 0) {
+		memcpy(pDest, (uint8_t*)&self->frameStruct, messageBuffer_getRawMessageLen(self));
+	}
+	*len = messageBuffer_getRawMessageLen(self);
 }

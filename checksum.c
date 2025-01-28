@@ -1,25 +1,25 @@
 #include "checksum.h"
 
 // ----------------------------------------------
-static uint8_t _checksum(messageBuffer_t message) {
+static uint8_t _checksum(uint8_t frame[], uint8_t frameLen) {
     uint8_t sum = 0;
 
-    for (uint8_t i=1; i<messageBuffer_getFrameLen(message); i++) {
-        sum += messageBuffer_getFramePointer(message)[i];
+    for (uint8_t i=1; i<frameLen; i++) {
+        sum += frame[i];
     }
 
     return ~sum+1;
 }
 
 // ----------------------------------------------
-void addChecksum(messageBuffer_t message) {
-   messageBuffer_AppendByte(message, _checksum(message));
+void addChecksum(uint8_t frame[], uint8_t* frameLen) {
+   frame[(*frameLen)++] = _checksum(frame, *frameLen);
 }
 
 // ----------------------------------------------
-bool isChecksumOkAndRemoveIt(messageBuffer_t message) {
-    if (0 == _checksum(message)) {
-        messageBuffer_removeByte(message);
+bool isChecksumOkAndRemoveIt(uint8_t frame[], uint8_t* frameLen) {
+    if (0 == _checksum(frame, *frameLen)) {
+        (*frameLen)--;
         return true;
     }
 

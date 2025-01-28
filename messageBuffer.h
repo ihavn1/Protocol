@@ -19,7 +19,6 @@ uint8_t messageBuffer_getPayloadLen(messageBuffer_t self);
 void messageBuffer_setFrameSeqNo(messageBuffer_t self, uint8_t seqNo);
 void messageBuffer_setFrameAckNakSeqNo(messageBuffer_t self, uint8_t seqNo);
 void messageBuffer_setFrameAckowledge(messageBuffer_t self, bool ack);
-uint8_t* messageBuffer_getFramePointer(messageBuffer_t self);
-uint8_t messageBuffer_getFrameLen(messageBuffer_t self);
+void messageBuffer_getRawMessage(messageBuffer_t self, uint8_t* pDest, uint8_t* len);
 
 #endif // _MESSAGE_BUFFER_H

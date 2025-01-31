@@ -1,8 +1,9 @@
 #include <stdbool.h>
 #include "framing.h"
+#include "checksum.h"
 
 enum FRAMING_STATES { IDLE, DATA, ESC };
-static void(*_messageReceivedCallBack)(uint8_t *pFrame, uint8_t frameLen);
+static void(*_messageReceivedCallBack)(bool ok, uint8_t *pFrame, uint8_t frameLen);
 static enum FRAMING_STATES _state;
 static uint8_t _frameBuffer[MAX_MESSAGE_BUFFER_SIZE];
 static uint8_t _frameBufferLen = 0;
@@ -58,11 +59,13 @@ framing_status_t framing_frameAndStuffMessage(messageBuffer_t message, uint8_t *
 {
 	uint8_t _rawMessage[MAX_MESSAGE_BUFFER_SIZE] = { 0 };
 	uint8_t _rawMessageLen = 0;
-
+	
 	*len = 0;
 
 	messageBuffer_getRawMessage(message, _rawMessage, &_rawMessageLen);
-	pFrame[*len++] = framing_FLAG_BYTE;
+	addChecksum(_rawMessage, &_rawMessageLen);
+
+	pFrame[(*len)++] = framing_FLAG_BYTE;
 
 	for (uint8_t src = 0; src < _rawMessageLen; src++)
 	{
@@ -71,16 +74,16 @@ framing_status_t framing_frameAndStuffMessage(messageBuffer_t message, uint8_t *
 			if (*len >= MAX_MESSAGE_BUFFER_SIZE - 1)
 				return BUFFER_TO_SMALL;
 
-			pFrame[*len++] = framing_ESC_BYTE;
+			pFrame[(*len)++] = framing_ESC_BYTE;
 		}
 
 		if (*len >= MAX_MESSAGE_BUFFER_SIZE - 1)
 			return BUFFER_TO_SMALL;
 
-		pFrame[*len++] = _rawMessage[src];
+		pFrame[(*len)++] = _rawMessage[src];
 	}
 
-	pFrame[*len++] = framing_FLAG_BYTE;
+	pFrame[(*len)++] = framing_FLAG_BYTE;
 
 	return OK;
 }
@@ -108,7 +111,12 @@ void framing_byteReceived(uint8_t byte)
 		}
 		else if (byte == framing_FLAG_BYTE && !_isBufferEmpty())
 		{
-			_messageReceivedCallBack(_frameBuffer, _frameBufferLen);
+			if (isChecksumOkAndRemoveIt(_frameBuffer, &_frameBufferLen)) {
+				_messageReceivedCallBack(true, _frameBuffer, _frameBufferLen);
+			}
+			else {
+				_messageReceivedCallBack(false, _frameBuffer, _frameBufferLen);
+			}
 			_gotoState(IDLE);
 		}
 		else
